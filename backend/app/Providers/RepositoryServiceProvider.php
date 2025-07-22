@@ -12,6 +12,16 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
+            \App\Repositories\Interfaces\UserRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentUserRepository::class
+        );
+
+        $this->app->bind(
+            \App\Services\Interfaces\UserServiceInterface::class,
+            \App\Services\UserService::class
+        );
+
+        $this->app->bind(
             \App\Repositories\Interfaces\TaskRepositoryInterface::class,
             \App\Repositories\Eloquent\EloquentTaskRepository::class
         );
@@ -19,6 +29,11 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Services\Interfaces\TaskServiceInterface::class,
             \App\Services\TaskService::class
+        );
+
+        $this->app->bind(
+            \App\Services\Interfaces\AuthServiceInterface::class,
+            \App\Services\AuthService::class
         );
     }
 

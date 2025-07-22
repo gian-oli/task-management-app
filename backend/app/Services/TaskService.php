@@ -18,7 +18,7 @@ class TaskService implements TaskServiceInterface
 
     public function getUserTasks(int $userId): Collection
     {
-        return $this->taskRepo->allByUser($userId);
+        return $this->taskRepo->getTasksByUser($userId);
     }
 
     public function createTask(array $data): Task
