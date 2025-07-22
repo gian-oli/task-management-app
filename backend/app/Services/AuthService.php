@@ -27,14 +27,12 @@ class AuthService implements AuthServiceInterface
 
     public function login(array $credentials): array
     {
-        $username = $credentials['username'] ?? $credentials['email'] ?? '';
-        $plainPassword = $credentials['password'] ?? '';
+        $login = $credentials['login'] ?? '';
+        $user = $this->userRepository->findByUsernameOrEmail($login);
 
-        $user = $this->userRepository->findByUsername($username);
-
-        if (!$user || !is_string($plainPassword) || Hash::check((string) $plainPassword, (string) $user->password)) {
+        if (!$user || !Hash::check((string) $credentials['password'], (string) $user->password)) {
             throw ValidationException::withMessages([
-                'username' => ['The provided credentials are incorrect.'],
+                'login' => ['The provided credentials are incorrect.'],
             ]);
         }
 
@@ -43,6 +41,7 @@ class AuthService implements AuthServiceInterface
             'token' => $user->createToken('auth-token')->plainTextToken,
         ];
     }
+
 
 
     public function logout(): void

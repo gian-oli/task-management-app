@@ -22,10 +22,15 @@ class EloquentUserRepository implements UserRepositoryInterface
         return User::find($id);
     }
 
-    public function findByUsername(string $username): ?User
+    public function findByUsernameOrEmail(string $login): ?User
     {
-        return User::where('username', $username)
-            ->orWhere('email', $username)
-            ->first();
+        return User::where('username', $login)
+                    ->orWhere('email', $login)
+                    ->first();
+    }
+
+    public function isAdmin(User $user): bool
+    {
+        return (bool) $user->is_admin;
     }
 }

@@ -34,7 +34,11 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request): JsonResponse
     {
         try {
-            $task = $this->taskService->createTask($request->validated());
+            $data = $request->validated();
+
+            $data['user_id'] = auth()->id();
+
+            $task = $this->taskService->createTask($data);
 
             return $this->returnResponse([
                 'status' => 'success',
@@ -49,7 +53,7 @@ class TaskController extends Controller
 
     public function show(int $id): JsonResponse
     {
-       $task = $this->taskService->getTaskById($id); 
+        $task = $this->taskService->getTaskById($id);
 
         if (!$task) {
             return $this->returnResponse($this->modelNotFoundResponse($id));
@@ -66,7 +70,10 @@ class TaskController extends Controller
     public function update(UpdateTaskRequest $request, int $id): JsonResponse
     {
         try {
-            $updated = $this->taskService->updateTask($id, $request->validated());
+            $data = $request->validated();
+
+            $data['user_id'] = auth()->id();
+            $updated = $this->taskService->updateTask($id, $data);
 
             if (!$updated) {
                 return $this->returnResponse($this->modelNotFoundResponse($id));
@@ -113,6 +120,36 @@ class TaskController extends Controller
             }
 
             return $this->returnResponse($this->successResponse('Tasks reordered successfully'));
+        } catch (\Exception $e) {
+            return $this->returnResponse($this->errorResponse($e));
+        }
+    }
+
+    public function restore(int $id): JsonResponse
+    {
+        try {
+            $restored = $this->taskService->restoreTask($id);
+
+            if (!$restored) {
+                return $this->returnResponse($this->modelNotFoundResponse($id));
+            }
+
+            return $this->returnResponse($this->successResponse('Task restored successfully'));
+        } catch (\Exception $e) {
+            return $this->returnResponse($this->errorResponse($e));
+        }
+    }
+
+    public function forceDelete(int $id): JsonResponse
+    {
+        try {
+            $deleted = $this->taskService->forceDeleteTask($id);
+
+            if (!$deleted) {
+                return $this->returnResponse($this->modelNotFoundResponse($id));
+            }
+
+            return $this->returnResponse($this->successResponse('Task permanently deleted successfully'));
         } catch (\Exception $e) {
             return $this->returnResponse($this->errorResponse($e));
         }

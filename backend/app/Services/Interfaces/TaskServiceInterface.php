@@ -13,4 +13,6 @@ interface TaskServiceInterface
     public function deleteTask(int $taskId): bool;
     public function reorderTasks(int $userId, array $orderedTaskIds): bool;
     public function getTaskById(int $taskId): ?Task;
+    public function restoreTask(int $taskId): bool;
+    public function forceDeleteTask(int $taskId): bool;
 }

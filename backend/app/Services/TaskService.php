@@ -45,4 +45,14 @@ class TaskService implements TaskServiceInterface
     {
         return $this->taskRepository->findById($taskId);
     }
+
+    public function restoreTask(int $taskId): bool
+    {
+        return $this->taskRepository->restore($taskId);
+    }
+
+    public function forceDeleteTask(int $taskId): bool
+    {
+        return $this->taskRepository->forceDelete($taskId);
+    }
 }

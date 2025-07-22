@@ -9,6 +9,6 @@ interface UserRepositoryInterface
     public function create(array $data): User;
     public function findByEmail(string $email): ?User;
     public function findById(int $id): ?User;
-
-    public function findByUsername(string $username): ?User;
+    public function findByUsernameOrEmail(string $login): ?User;
+     public function isAdmin(User $user): bool;
 }

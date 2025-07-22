@@ -43,7 +43,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
             return false;
         }
 
-        return $task->delete();
+        return (bool) $task->delete(); // soft delete called here
     }
 
     public function reorder(int $userId, array $orderedTaskIds): bool
@@ -63,5 +63,27 @@ class EloquentTaskRepository implements TaskRepositoryInterface
             DB::rollBack();
             return false;
         }
+    }
+
+    public function restore(int $taskId): bool
+    {
+        $task = Task::withTrashed()->find($taskId);
+
+        if (!$task) {
+            return false;
+        }
+
+        return (bool) $task->restore();
+    }
+
+    public function forceDelete(int $taskId): bool
+    {
+        $task = Task::withTrashed()->find($taskId);
+
+        if (!$task) {
+            return false;
+        }
+
+        return (bool) $task->forceDelete();
     }
 }

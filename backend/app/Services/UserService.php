@@ -23,6 +23,6 @@ class UserService implements UserServiceInterface
 
     public function isAdmin(User $user): bool
     {
-        return $user->is_admin;
+        return $this->userRepo->isAdmin($user);
     }
 }

@@ -17,4 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Example of extra authenticated endpoints
     Route::post('/tasks/reorder', [TaskController::class, 'reorder']);
+    Route::delete('/tasks/{id}/force', [TaskController::class, 'forceDelete']);
+    Route::post('/tasks/{id}/restore', [TaskController::class, 'restore']);
 });

@@ -16,12 +16,22 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'name' => trim($this->name ?? ''),
+            'username' => trim($this->username ?? ''),
+            'email' => trim($this->email ?? ''),
+        ]);
+    }
+
+
     public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
         ];
     }
