@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
@@ -16,21 +17,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin routes — full access
     Route::middleware('is_admin')->group(function () {
+
+        // Task Management (Admin)
         Route::apiResource('tasks', TaskController::class);
-
-        // Protect reorder route with check.pusher middleware
         Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->middleware('check.pusher');
-
         Route::post('/tasks/{id}/restore', [TaskController::class, 'restore']);
         Route::delete('/tasks/{id}/force', [TaskController::class, 'forceDelete']);
+
+        // User Management (Admin Only)
+        Route::get('/admin/users', [UserManagementController::class, 'index']);
+        Route::post('/admin/users/{id}/toggle-admin', [UserManagementController::class, 'toggleAdmin']);
     });
 
-    // User routes — limited access (no forceDelete)
+    // User routes — limited access
     Route::middleware('is_user')->group(function () {
-        // User cannot force delete or restore
         Route::apiResource('tasks', TaskController::class)->except(['forceDelete', 'restore']);
-
-        // Protect reorder route with check.pusher middleware
         Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->middleware('check.pusher');
     });
 

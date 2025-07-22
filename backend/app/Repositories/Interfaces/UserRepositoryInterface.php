@@ -10,5 +10,7 @@ interface UserRepositoryInterface
     public function findByEmail(string $email): ?User;
     public function findById(int $id): ?User;
     public function findByUsernameOrEmail(string $login): ?User;
-     public function isAdmin(User $user): bool;
+    public function isAdmin(User $user): bool;
+    public function all(): \Illuminate\Support\Collection;
+    public function setAdmin(User $user, bool $isAdmin): bool;
 }

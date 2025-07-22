@@ -2,27 +2,38 @@
 
 namespace App\Services;
 
-use App\Services\Interfaces\UserServiceInterface;
-use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Models\User;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Services\Interfaces\UserServiceInterface;
+use Illuminate\Support\Collection;
 
 class UserService implements UserServiceInterface
 {
-    protected UserRepositoryInterface $userRepo;
+    protected $userRepo;
 
     public function __construct(UserRepositoryInterface $userRepo)
     {
         $this->userRepo = $userRepo;
     }
 
-    public function createUser(array $data): User
+    public function getAllUsers(): Collection
     {
-        $data['password'] = bcrypt($data['password']);
-        return $this->userRepo->create($data);
+        return $this->userRepo->all();
     }
 
-    public function isAdmin(User $user): bool
+    public function toggleAdminRole(int $userId): bool
     {
-        return $this->userRepo->isAdmin($user);
+        $user = $this->userRepo->findById($userId);
+
+        if (!$user) {
+            return false;
+        }
+
+        return $this->userRepo->setAdmin($user, !$user->is_admin);
+    }
+
+    public function findUserById(int $id): ?User
+    {
+        return $this->userRepo->findById($id);
     }
 }
