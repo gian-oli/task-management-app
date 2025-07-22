@@ -5,83 +5,94 @@ namespace App\Http\Controllers;
 use App\Services\Interfaces\TaskServiceInterface;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Traits\ResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    use ResponseTrait;
+
     protected TaskServiceInterface $taskService;
 
     public function __construct(TaskServiceInterface $taskService)
     {
         $this->taskService = $taskService;
-        // You can also add middleware here if needed, e.g.
-        // $this->middleware('auth:sanctum');
     }
 
-    /**
-     * Display a listing of the tasks for the authenticated user.
-     */
     public function index(): JsonResponse
     {
         $tasks = $this->taskService->getUserTasks(auth()->id());
-        return response()->json($tasks);
+        return $this->returnResponse([
+            'status' => 'success',
+            'status_code' => 200,
+            'message' => 'Tasks retrieved successfully',
+            'data' => $tasks,
+        ]);
     }
 
-    /**
-     * Store a newly created task in storage.
-     */
     public function store(StoreTaskRequest $request): JsonResponse
     {
-        $task = $this->taskService->createTask($request->validated());
-        return response()->json($task, 201);
+        try {
+            $task = $this->taskService->createTask($request->validated());
+
+            return $this->returnResponse([
+                'status' => 'success',
+                'status_code' => 201,
+                'message' => 'Task created successfully',
+                'data' => $task,
+            ]);
+        } catch (\Exception $e) {
+            return $this->returnResponse($this->errorResponse($e));
+        }
     }
 
-    /**
-     * Display the specified task by id.
-     */
     public function show(int $id): JsonResponse
     {
-        $task = $this->taskService->getTaskById($id);
+       $task = $this->taskService->getTaskById($id); 
 
         if (!$task) {
-            return response()->json(['message' => 'Task not found'], 404);
+            return $this->returnResponse($this->modelNotFoundResponse($id));
         }
 
-        return response()->json($task);
+        return $this->returnResponse([
+            'status' => 'success',
+            'status_code' => 200,
+            'message' => 'Task retrieved successfully',
+            'data' => $task,
+        ]);
     }
 
-    /**
-     * Update the specified task in storage.
-     */
     public function update(UpdateTaskRequest $request, int $id): JsonResponse
     {
-        $updated = $this->taskService->updateTask($id, $request->validated());
+        try {
+            $updated = $this->taskService->updateTask($id, $request->validated());
 
-        if (!$updated) {
-            return response()->json(['message' => 'Task not found or update failed'], 404);
+            if (!$updated) {
+                return $this->returnResponse($this->modelNotFoundResponse($id));
+            }
+
+            return $this->returnResponse($this->successResponse('Task updated successfully'));
+        } catch (\Exception $e) {
+            return $this->returnResponse($this->errorResponse($e));
         }
-
-        return response()->json(['message' => 'Task updated successfully']);
     }
 
-    /**
-     * Remove the specified task from storage.
-     */
     public function destroy(int $id): JsonResponse
     {
-        $deleted = $this->taskService->deleteTask($id);
+        try {
+            $deleted = $this->taskService->deleteTask($id);
 
-        if (!$deleted) {
-            return response()->json(['message' => 'Task not found or delete failed'], 404);
+            if (!$deleted) {
+                return $this->returnResponse($this->modelNotFoundResponse($id));
+            }
+
+            return $this->returnResponse($this->successResponse('Task deleted successfully'));
+        } catch (\Exception $e) {
+            return $this->returnResponse($this->errorResponse($e));
         }
-
-        return response()->json(['message' => 'Task deleted successfully']);
     }
 
-    /**
-     * Optional: Reorder tasks endpoint (if you have task reordering).
-     */
     public function reorder(Request $request): JsonResponse
     {
         $request->validate([
@@ -89,14 +100,21 @@ class TaskController extends Controller
             'ordered_task_ids.*' => 'integer|exists:tasks,id',
         ]);
 
-        $userId = auth()->id();
+        try {
+            $userId = auth()->id();
+            $result = $this->taskService->reorderTasks($userId, $request->input('ordered_task_ids'));
 
-        $result = $this->taskService->reorderTasks($userId, $request->input('ordered_task_ids'));
+            if (!$result) {
+                return $this->returnResponse([
+                    'status' => 'warning',
+                    'status_code' => 400,
+                    'message' => 'Task reordering failed.',
+                ]);
+            }
 
-        if (!$result) {
-            return response()->json(['message' => 'Reordering failed'], 400);
+            return $this->returnResponse($this->successResponse('Tasks reordered successfully'));
+        } catch (\Exception $e) {
+            return $this->returnResponse($this->errorResponse($e));
         }
-
-        return response()->json(['message' => 'Tasks reordered successfully']);
     }
 }

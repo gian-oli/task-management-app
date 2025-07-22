@@ -2,41 +2,39 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\Interfaces\AuthServiceInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use App\Services\Interfaces\AuthServiceInterface;
 
 class AuthService implements AuthServiceInterface
 {
-    public function register(Request $request): mixed
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
+    protected UserRepositoryInterface $userRepository;
 
-        return User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-        ]);
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
     }
 
-    public function login(Request $request): mixed
+    public function register(array $data): \App\Models\User
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        // Password hashing happens here before saving
+        $data['password'] = bcrypt($data['password']);
+        $data['role'] = $data['role'] ?? 'user'; // Default role
 
-        $user = User::where('email', $request->email)->first();
+        return $this->userRepository->create($data);
+    }
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+    public function login(array $credentials): array
+    {
+        $username = $credentials['username'] ?? $credentials['email'] ?? '';
+        $plainPassword = $credentials['password'] ?? '';
+
+        $user = $this->userRepository->findByUsername($username);
+
+        if (!$user || !is_string($plainPassword) || Hash::check((string) $plainPassword, (string) $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'username' => ['The provided credentials are incorrect.'],
             ]);
         }
 
@@ -46,10 +44,9 @@ class AuthService implements AuthServiceInterface
         ];
     }
 
-    public function logout(Request $request): mixed
-    {
-        $request->user()->tokens()->delete();
 
-        return ['message' => 'Logged out successfully.'];
+    public function logout(): void
+    {
+        auth()->user()->tokens()->delete();
     }
 }

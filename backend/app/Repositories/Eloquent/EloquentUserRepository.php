@@ -21,4 +21,11 @@ class EloquentUserRepository implements UserRepositoryInterface
     {
         return User::find($id);
     }
+
+    public function findByUsername(string $username): ?User
+    {
+        return User::where('username', $username)
+            ->orWhere('email', $username)
+            ->first();
+    }
 }

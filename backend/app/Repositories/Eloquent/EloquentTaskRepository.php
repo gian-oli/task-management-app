@@ -2,20 +2,37 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Repositories\Interfaces\TaskRepositoryInterface;
 use App\Models\Task;
+use App\Repositories\Interfaces\TaskRepositoryInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class EloquentTaskRepository implements TaskRepositoryInterface
 {
-    public function allByUser(int $userId): Collection
+    public function getTasksByUser(int $userId): Collection
     {
         return Task::where('user_id', $userId)->orderBy('order')->get();
     }
-    
+
     public function create(array $data): Task
     {
         return Task::create($data);
+    }
+
+    public function findById(int $id): ?Task
+    {
+        return Task::find($id);
+    }
+
+    public function update(int $taskId, array $data): bool
+    {
+        $task = Task::find($taskId);
+
+        if (!$task) {
+            return false;
+        }
+
+        return $task->update($data);
     }
 
     public function delete(int $taskId): bool
@@ -46,26 +63,5 @@ class EloquentTaskRepository implements TaskRepositoryInterface
             DB::rollBack();
             return false;
         }
-    }
-
-    public function update(int $taskId, array $data): bool
-    {
-        $task = Task::find($taskId);
-
-        if (!$task) {
-            return false;
-        }
-
-        return $task->update($data);
-    }
-
-    public function findById(int $taskId): ?Task
-    {
-        return Task::find($taskId);
-    }
-
-    public function getTasksByUser(int $userId): Collection
-    {
-        return Task::where('user_id', $userId)->orderBy('order')->get();
     }
 }

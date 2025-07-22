@@ -12,4 +12,5 @@ interface TaskServiceInterface
     public function updateTask(int $taskId, array $data): bool;
     public function deleteTask(int $taskId): bool;
     public function reorderTasks(int $userId, array $orderedTaskIds): bool;
+    public function getTaskById(int $taskId): ?Task;
 }

@@ -1,5 +1,5 @@
 <?php
-// app/Services/TaskService.php
+
 namespace App\Services;
 
 use App\Repositories\Interfaces\TaskRepositoryInterface;
@@ -9,78 +9,40 @@ use Illuminate\Support\Collection;
 
 class TaskService implements TaskServiceInterface
 {
-    protected TaskRepositoryInterface $taskRepo;
+    protected TaskRepositoryInterface $taskRepository;
 
-    public function __construct(TaskRepositoryInterface $taskRepo)
+    public function __construct(TaskRepositoryInterface $taskRepository)
     {
-        $this->taskRepo = $taskRepo;
+        $this->taskRepository = $taskRepository;
     }
 
     public function getUserTasks(int $userId): Collection
     {
-        return $this->taskRepo->getTasksByUser($userId);
+        return $this->taskRepository->getTasksByUser($userId);
     }
 
     public function createTask(array $data): Task
     {
-        // Validate or manipulate $data if needed before creating
-
-        // Create and return the task model
-        return Task::create($data);
+        return $this->taskRepository->create($data);
     }
 
-    /**
-     * Delete a task by its ID.
-     */
     public function deleteTask(int $taskId): bool
     {
-        $task = Task::find($taskId);
-
-        if (!$task) {
-            return false; // Task not found
-        }
-
-        return $task->delete();
+        return $this->taskRepository->delete($taskId);
     }
 
-    /**
-     * Reorder tasks for a user by updating their `order` field.
-     *
-     * $orderedTaskIds is an array of task IDs in the new order.
-     */
     public function reorderTasks(int $userId, array $orderedTaskIds): bool
     {
-        // Use transaction to ensure all orders update atomically
-        DB::beginTransaction();
-
-        try {
-            foreach ($orderedTaskIds as $index => $taskId) {
-                // Update only tasks belonging to the user for security
-                Task::where('id', $taskId)
-                    ->where('user_id', $userId)
-                    ->update(['order' => $index]);
-            }
-
-            DB::commit();
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            // Optionally log $e->getMessage()
-            return false;
-        }
+        return $this->taskRepository->reorder($userId, $orderedTaskIds);
     }
 
-    /**
-     * Update an existing task by its ID with given data.
-     */
     public function updateTask(int $taskId, array $data): bool
     {
-        $task = Task::find($taskId);
+        return $this->taskRepository->update($taskId, $data);
+    }
 
-        if (!$task) {
-            return false; // Task not found
-        }
-
-        return $task->update($data);
+    public function getTaskById(int $taskId): ?Task
+    {
+        return $this->taskRepository->findById($taskId);
     }
 }
