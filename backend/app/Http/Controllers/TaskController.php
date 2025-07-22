@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TasksReordered;
+use App\Http\Requests\ReorderRequest;
 use App\Services\Interfaces\TaskServiceInterface;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
@@ -100,12 +102,9 @@ class TaskController extends Controller
         }
     }
 
-    public function reorder(Request $request): JsonResponse
+    public function reorder(ReorderRequest $request): JsonResponse
     {
-        $request->validate([
-            'ordered_task_ids' => 'required|array',
-            'ordered_task_ids.*' => 'integer|exists:tasks,id',
-        ]);
+        \Log::info('GUMAGANA');
 
         try {
             $userId = auth()->id();
@@ -118,6 +117,9 @@ class TaskController extends Controller
                     'message' => 'Task reordering failed.',
                 ]);
             }
+
+            // Broadcast reorder event
+            broadcast(new TasksReordered($userId, $request->input('ordered_task_ids')));
 
             return $this->returnResponse($this->successResponse('Tasks reordered successfully'));
         } catch (\Exception $e) {

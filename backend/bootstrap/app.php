@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'is_admin' => IsAdmin::class,
             'is_user' => IsUser::class,
+            'check.pusher' => \App\Http\Middleware\CheckPusherCredentials::class,
         ]);
         $middleware->group('api', [
             EnsureFrontendRequestsAreStateful::class,
